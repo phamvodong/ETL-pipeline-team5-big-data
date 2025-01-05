@@ -1,65 +1,65 @@
+import csv
+import re
 from googleapiclient.discovery import build
+from datetime import datetime
+
+def clean_text(text):
+    # Remove URLs
+    text = re.sub(r'http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\\(\\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+', '', text)
+    # Remove HTML tags
+    text = re.sub(r'<[^>]+>', '', text)
+    # Remove emojis, icons, and special characters - enhanced pattern
+    text = re.sub(r'[^\w\s.,!?-]', '', text)
+    # Remove extra whitespace
+    text = ' '.join(text.split())
+    return text
 
 # YouTube API Key
-API_KEY = "YOUR_YOUTUBE_API_KEY"  # Replace with your API key
+API_KEY = "AIzaSyBVytj9ZoAOVtHq2Pjs_T2w0TMc64axYiU"  # Replace with your API key
 
 # Build the YouTube client
 youtube = build('youtube', 'v3', developerKey=API_KEY)
 
-# Search for videos with a specific keyword/hashtag
-search_query = "#AIArt"  # Replace with your desired hashtag/keyword
-search_response = youtube.search().list(
-    q=search_query,
-    part="snippet",
-    type="video",
-    maxResults=10
-).execute()
+# List of search queries
+search_queries = ["#AIArt", "#AIVideo", "#AIGenerator", 'VideoGenerator' "#AIAnimation", "#AICreative", "#AIGenerated", "#StableDiffusion", "#MidJourney", "#AIContentCreator", "#AIVideoEditor", "#TextToVideo", "#AIImageGeneration"]
+# Create CSV file with timestamp
+timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+csv_filename = f'youtube_data_{timestamp}.csv'
 
-# Process videos
-print(f"Fetching videos with '{search_query}'...\n")
-for video in search_response.get('items', []):
-    video_id = video['id']['videoId']
-    video_title = video['snippet']['title']
-    video_channel = video['snippet']['channelTitle']
+with open(csv_filename, 'w', newline='', encoding='utf-8') as csvfile:
+    csvwriter = csv.writer(csvfile)
+    csvwriter.writerow(['Search Query', 'Video ID', 'Title', 'Comment ID', 'Comment'])
 
-    # Fetch video details
-    video_details = youtube.videos().list(
-        part="statistics",
-        id=video_id
-    ).execute()
-
-    video_stats = video_details['items'][0]['statistics']
-    comment_count = int(video_stats.get('commentCount', 0))
-
-    # Print video details
-    print(f"Video Title: {video_title}")
-    print(f"Channel: {video_channel}")
-    print(f"Views: {video_stats.get('viewCount', 0)}")
-    print(f"Likes: {video_stats.get('likeCount', 0)}")
-    print(f"Comments: {comment_count}")
-    print(f"URL: https://www.youtube.com/watch?v={video_id}")
-    print("-" * 40)
-
-    # Fetch comments if available
-    if comment_count > 0:
-        print("Fetching comments...\n")
-        comments_response = youtube.commentThreads().list(
+    # Process each search query
+    for search_query in search_queries:
+        print(f"\nFetching videos with '{search_query}'...")
+        search_response = youtube.search().list(
+            q=search_query,
             part="snippet",
-            videoId=video_id,
-            maxResults=5
+            type="video",
+            maxResults=10
         ).execute()
 
-        for comment in comments_response.get('items', []):
-            comment_snippet = comment['snippet']['topLevelComment']['snippet']
-            comment_author = comment_snippet['authorDisplayName']
-            comment_text = comment_snippet['textDisplay']
-            comment_likes = comment_snippet['likeCount']
+        # Process videos
+        for video in search_response.get('items', []):
+            video_id = video['id']['videoId']
+            video_title = clean_text(video['snippet']['title'])
 
-            print(f"  Comment by {comment_author}:")
-            print(f"  {comment_text}")
-            print(f"  Likes: {comment_likes}")
-            print("  " + "-" * 30)
-    else:
-        print("No comments found for this video.")
-    
-    print("=" * 50)
+            try:
+                comments_response = youtube.commentThreads().list(
+                    part="snippet",
+                    videoId=video_id,
+                    maxResults=5
+                ).execute()
+
+                for comment in comments_response.get('items', []):
+                    comment_id = comment['id']
+                    comment_text = clean_text(comment['snippet']['topLevelComment']['snippet']['textDisplay'])
+                    
+                    if comment_text.strip():
+                        csvwriter.writerow([search_query, video_id, video_title, comment_id, comment_text])
+
+            except Exception as e:
+                continue
+
+print(f"\nData has been exported to {csv_filename}")
