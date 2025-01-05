@@ -1,0 +1,6 @@
+boto3      # AWS S3 integration
+tweepy      # Twitter API
+standard-imghdr #for Twitter API
+praw         # Reddit API
+pandas       # Data manipulation
+nltk         # Natural Language Toolkit (if needed for text preprocessing)
