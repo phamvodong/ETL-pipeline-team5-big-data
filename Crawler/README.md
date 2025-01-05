@@ -51,15 +51,16 @@ python ./connection_testing.py
 
 ### **1. Fetch Data**
 
-Run the `fetch_data.py` script to collect historical data from Twitter and Reddit:
+Run the `fetch_reddit_data.py` script to collect historical data from Reddit:
 
 ```bash
-python ./fetch_data.py
+python ./fetch_reddit_data.py
 ```
 
 The script will save:
 
-- Twitter data to `data/twitter/twitter_data.csv`
+<!-- - Twitter data to `data/twitter/twitter_data.csv` -->
+
 - Reddit data to `data/reddit/reddit_data.csv`
 
 ### **2. Save Data to AWS S3**
@@ -74,10 +75,8 @@ The data will be organized in the following structure on S3:
 
 ```
 social_media/
-  ├── twitter/
-  │   └── twitter_data.csv
   ├── reddit/
-  │   └── reddit_data.csv
+  │   └── reddit_data_{timeStamp}.csv
 ```
 
 ---
@@ -87,10 +86,8 @@ social_media/
 ```
 social-media-pipeline/
   ├── data/                   # Local data storage
-  │   ├── twitter/            # Twitter data folder
-  │   │   └── twitter_data.csv
   │   ├── reddit/             # Reddit data folder
-  │       └── reddit_data.csv
+  │       └── reddit_data_{timeStamp}.csv
   ├── fetch_data.py           # Script to fetch data
   ├── save_to_s3.py           # Script to upload data to S3
   ├── requirements.txt        # Python dependencies
