@@ -12,6 +12,23 @@ REDDIT_USER_AGENT = "script:KN1111:1.0 (by u/LessCase7928)"
 # Authenticate Reddit
 reddit = praw.Reddit(client_id=REDDIT_CLIENT_ID, client_secret=REDDIT_CLIENT_SECRET, user_agent=REDDIT_USER_AGENT)
 
+class KinesisProducer:
+    def __init__(self):
+        self.client = boto3.client('kinesis')
+        self.stream_name = 'social-media-stream'
+    
+    def send_data(self, data):
+        try:
+            response = self.client.put_record(
+                StreamName=self.stream_name,
+                Data=json.dumps(data),
+                PartitionKey=str(data.get('id', '1'))
+            )
+            return response
+        except Exception as e:
+            print(f"Error sending to Kinesis: {e}")
+            return None
+
 # Ensure directories exist
 reddit_directory_path = "data/reddit"
 if not os.path.exists(reddit_directory_path):
@@ -42,31 +59,23 @@ def delete_processed_ids():
         print("Processed IDs file does not exist.")
 
 
-def fetch_reddit_data(subreddits, keywords, limit=10000):
-    data = []
-    new_ids = set()
+producer = KinesisProducer()
 
+def fetch_reddit_data(subreddits, keywords, limit=10000):
     for subreddit in subreddits:
-        print(f"Fetching data from subreddit: {subreddit}")
         try:
             subreddit_data = reddit.subreddit(subreddit)
             for post in subreddit_data.search(" OR ".join(keywords), limit=limit):
-                if post.id not in processed_ids and post.id not in new_ids:
-                    new_ids.add(post.id)
-                    data.append({
-                    # 'subreddit': post.subreddit.display_name,
-                    'title':  remove_emojis(post.title),
-                    'content':  remove_emojis(post.selftext),
-                    # 'author': post.author.name if post.author else None,
-                    # 'upvotes': post.score,
-                    # 'downvotes': post.downs,
-                    'num_comments': post.num_comments,
-                    # 'comments': [comment.body.encode('ascii', 'ignore').decode('ascii') for comment in post.comments],
-                    'comments': [remove_emojis(comment.body.encode('ascii', 'ignore').decode('ascii')) for comment in post.comments],
-                    'created_utc': post.created_utc,
-                    'post_id': post.id
-                    })
-                    print(f"Added post: {post.id} - {post.title}")
+                if post.id not in processed_ids:
+                    data = {
+                        'source': 'reddit',
+                        'id': post.id,
+                        'title': remove_emojis(post.title),
+                        'content': remove_emojis(post.selftext),
+                        'comments': [remove_emojis(c.body) for c in post.comments],
+                        'created_utc': post.created_utc
+                    }
+                    producer.send_data(data)
                 else:
                     print(f"Skipped duplicate post: {post.id}")
         except Exception as e:

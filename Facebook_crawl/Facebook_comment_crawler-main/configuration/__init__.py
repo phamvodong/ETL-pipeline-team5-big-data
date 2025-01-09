@@ -1,2 +1,2 @@
-from configuration.config import *
+Lfrom configuration.config import *
 from configuration.action import *

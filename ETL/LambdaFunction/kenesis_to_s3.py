@@ -5,7 +5,7 @@ from datetime import datetime
 
 def lambda_handler(event, context):
     s3 = boto3.client('s3')
-    bucket_name = 'raw-social-data'
+    bucket_name = 'raw-data-social-comment'
     
     for record in event['Records']:
         try:

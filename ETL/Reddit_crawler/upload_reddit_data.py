@@ -5,9 +5,30 @@ import json
 from botocore.exceptions import ClientError
 from datetime import datetime
 from ..utils.data_formatter import read_csv_data, format_local_data
-import json
-import pandas as pd
-from datetime import datetime
+
+class KinesisProducer:
+    def __init__(self, region_name='us-west-2'):
+        try:
+            self.client = boto3.client('kinesis', region_name=region_name)
+            self.stream_name = 'social-media-stream'
+        except ClientError as e:
+            print(f"Error initializing Kinesis client: {e}")
+            raise
+    
+    def send_data(self, data):
+        try:
+            response = self.client.put_record(
+                StreamName=self.stream_name,
+                Data=json.dumps(data),
+                PartitionKey=str(data.get('id', '1'))
+            )
+            return response
+        except ClientError as e:
+            print(f"Error sending to Kinesis: {e}")
+            return None
+
+# Initialize Kinesis producer
+producer = KinesisProducer()
 
 def format_local_data(df):
     """
@@ -54,7 +75,7 @@ def read_csv_data(filepath):
 
 def upload_csv_to_s3(file_path, bucket_name='raw-social-data'):
     """
-    Upload CSV file data to S3 following the same structure as fetched data
+    Upload CSV file data to S3 and Kinesis following the same structure as fetched data
     """
     try:
         s3 = boto3.client('s3')
@@ -63,47 +84,61 @@ def upload_csv_to_s3(file_path, bucket_name='raw-social-data'):
         df = read_csv_data(file_path)
         processed_data = format_local_data(df)
             
-        # Upload to S3 following the same directory structure
+        # Upload to S3 and send to Kinesis
         current_time = datetime.now()
+        processed_count = 0
         failed_uploads = []
         
         for item in processed_data:
             try:
-                # Use same path structure that Lambda expects
+                # Use same path structure 
                 key = f"reddit/{current_time.strftime('%Y/%m/%d/%H')}/{item['id']}.json"
                 
+                # Upload to S3
                 s3.put_object(
                     Bucket=bucket_name,
                     Key=key,
                     Body=json.dumps(item),
                     ContentType='application/json'
                 )
-                print(f"Uploaded {item['id']} to s3://{bucket_name}/{key}")
+                print(f"Uploaded to S3: s3://{bucket_name}/{key}")
                 
-                # Also send to Kinesis stream
-                producer.send_data(item)
+                # Send to Kinesis stream
+                kinesis_response = producer.send_data(item)
+                if kinesis_response and kinesis_response.get('SequenceNumber'):
+                    print(f"Sent to Kinesis stream: {item['id']}")
+                    processed_count += 1
+                else:
+                    print(f"Failed to send to Kinesis: {item['id']}")
+                    failed_uploads.append({
+                        'id': item['id'],
+                        'error': 'Kinesis send failed'
+                    })
                 
             except Exception as e:
                 failed_uploads.append({
                     'id': item['id'],
                     'error': str(e)
                 })
+                print(f"Error processing item {item['id']}: {e}")
+                continue
         
         return {
             'status': 'success',
-            'items_processed': len(processed_data),
+            'items_processed': processed_count,
             'failed_uploads': failed_uploads,
             'timestamp': current_time.isoformat()
         }
         
     except Exception as e:
-        print(f"Error uploading CSV file: {e}")
+        print(f"Error uploading data: {e}")
         return {
             'status': 'error',
             'error': str(e)
         }
 
 if __name__ == "__main__":
-    csv_file = "path/to/your/reddit_data.csv"  # Update this path
+    # Example usage
+    csv_file = "/path/to/your/reddit_data.csv"  # Update this path
     result = upload_csv_to_s3(csv_file)
     print(json.dumps(result, indent=2))

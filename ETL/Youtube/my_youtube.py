@@ -12,7 +12,7 @@ class KinesisProducer:
     def __init__(self, region_name='us-west-2'):
         try:
             self.client = boto3.client('kinesis', region_name=region_name)
-            self.stream_name = 'social-media-stream'
+            self.stream_name = 'team5-social-media-stream'
         except ClientError as e:
             print(f"Error initializing Kinesis client: {e}")
             raise
@@ -29,7 +29,7 @@ class KinesisProducer:
             print(f"Error sending to Kinesis: {e}")
             return None
 # YouTube API credentials
-API_KEY = "AIzaSyBVytj9ZoAOVtHq2Pjs_T2w0TMc64axYiU"
+API_KEY = "AIzaSyA3mzd3mYNINALY03sNSBIAqmZIL4NxZUs"
 youtube = build('youtube', 'v3', developerKey=API_KEY)
 
 # Initialize Kinesis producer
@@ -43,7 +43,7 @@ def clean_text(text):
     text = re.sub(r'[^\w\s.,!?-]', '', text)
     return ' '.join(text.split())
 
-def fetch_youtube_data(search_queries, max_results=50):
+def fetch_youtube_data(search_queries, max_results=1000):
     start_date = datetime(2022, 1, 1).isoformat() + 'Z'
     
     for query in search_queries:
@@ -66,7 +66,7 @@ def fetch_youtube_data(search_queries, max_results=50):
                     comments_response = youtube.commentThreads().list(
                         part="snippet",
                         videoId=video_id,
-                        maxResults=5
+                        maxResults=100
                     ).execute()
                     
                     comments = [

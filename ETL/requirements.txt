@@ -1,0 +1,5 @@
+google-api-python-client
+pandas
+pymongo
+pyspark
+mongo-spark-connector
