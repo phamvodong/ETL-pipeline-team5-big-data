@@ -1,14 +1,16 @@
 # EEET2574|EEET2615 Assessment 3: Social media data pipeline
 
-S - Tran Ngoc Khang
+S3927201 - Tran Ngoc Khang
 
 S3891968 - Pham Vo Dong
 
-S - Nguyen Gia Khanh
+S3927238 - Nguyen Gia Khanh
 
-S - Sang-Hwa Jung
+S3768999 - Sang-Hwa Jung
 
-S - Tran Vinh Trong
+S3863973 - Tran Vinh Trong 
+
+---
 
 ## Table of Contents
 
