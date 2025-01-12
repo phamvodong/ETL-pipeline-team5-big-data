@@ -1,8 +1,6 @@
 # README for Reddit Crawler and Data Uploader
 
-This project consists of two main scripts: **`crawler.py`** and **`upload_reddit_data.py`**, designed for fetching, processing, and uploading Reddit data to AWS services such as Kinesis and S3.
-
----
+This project consists of two main scripts: **`crawler.py`**, designed for fetching, processing, and uploading Reddit data to AWS services such as Kinesis and S3.
 
 ## **Project Overview**
 
@@ -11,15 +9,6 @@ This project consists of two main scripts: **`crawler.py`** and **`upload_reddit
 - Fetches Reddit posts and their comments from specified subreddits based on keywords.
 - Sends the processed data to an AWS Kinesis data stream for further processing.
 - Saves processed post IDs locally to avoid duplicate processing.
-
-### **`upload_reddit_data.py`**
-
-- Reads Reddit data from a CSV file.
-- Formats and uploads the data to:
-  - An AWS S3 bucket for long-term storage.
-  - An AWS Kinesis data stream for real-time processing.
-
----
 
 ## **Setup and Installation**
 
@@ -39,7 +28,15 @@ Install dependencies:
 pip install -r requirements.txt
 ```
 
----
+### **3. Add .env file**
+
+Create **`.env`** based on the **`.env-example`**
+
+```.env
+REDDIT_CLIENT_ID=
+REDDIT_CLIENT_SECRET=
+REDDIT_USER_AGENT=
+```
 
 ## **Usage**
 
@@ -67,38 +64,12 @@ python crawler.py
 
 ---
 
-### **2. Uploading CSV Data (`upload_reddit_data.py`)**
-
-#### **Input**
-
-- **CSV File**: A file containing Reddit post data with fields like `title`, `content`, `comments`, `created_utc`, and `post_id`.
-- **AWS S3 Bucket**: Uploads formatted data to an S3 bucket.
-- **AWS Kinesis Stream**: Sends formatted data to the `social-media-stream` Kinesis stream.
-
-#### **Output**
-
-- Data uploaded to the specified S3 bucket with a structured path: `reddit/YYYY/MM/DD/HH/<post_id>.json`.
-- Data sent to the Kinesis stream for real-time processing.
-
-#### **Run the Script**
-
-Update the `csv_file` variable with the path to your data file and execute:
-
-```bash
-python upload_reddit_data.py
-```
-
----
-
 ## **Folder Structure**
 
 ```text
 project/
-├── reddit_data/
-│   ├── processed_ids.txt             # Tracks processed Reddit post IDs
-│   └── reddit_data.csv               # Example CSV file for upload script
 ├── crawler.py                        # Fetches Reddit data
-├── upload_reddit_data.py             # Uploads local data to AWS
+├── .env                              # Env file
 ├── requirements.txt                  # Python dependencies
 └── README.md                         # Project documentation
 ```
@@ -120,19 +91,6 @@ project/
 
 ---
 
-### **`upload_reddit_data.py`**
-
-1. **`read_csv_data(filepath)`**  
-   Reads CSV or TSV files into a Pandas DataFrame.
-
-2. **`format_local_data(df)`**  
-   Formats local CSV data into a structure compatible with S3 and Kinesis.
-
-3. **`upload_csv_to_s3(file_path, bucket_name)`**  
-   Uploads formatted data to an S3 bucket and sends it to Kinesis.
-
----
-
 ## **AWS Integration**
 
 ### **Kinesis**
@@ -146,8 +104,6 @@ project/
 - Files are uploaded with a structured path:
   `reddit/YYYY/MM/DD/HH/<post_id>.json`
 
----
-
 ## **Error Handling**
 
 ### **`crawler.py`**
@@ -155,19 +111,10 @@ project/
 - Skips inaccessible subreddits and handles errors while fetching comments.
 - Logs issues with specific posts or comments.
 
-### **`upload_reddit_data.py`**
-
-- Tracks failed uploads and returns a summary with details of failures.
-
----
-
 ## **Known Limitations**
 
 1. **Reddit Rate Limits**: May encounter API rate limits during high-volume scraping.
 2. **AWS Costs**: Kinesis and S3 incur costs based on usage.
-3. **Local File Storage**: Ensure enough space for storing data locally before uploading.
-
----
 
 ## **Future Enhancements**
 

@@ -28,11 +28,3 @@
 
 - **Monitoring**:
   - Integrate AWS CloudWatch to monitor Lambda invocations, errors, and processing metrics.
-
-### **Notes:**
-
-Install dependencies with:
-
-```bash
-pip install -r requirements.txt
-```

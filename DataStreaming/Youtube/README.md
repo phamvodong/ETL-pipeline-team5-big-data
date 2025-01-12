@@ -48,21 +48,6 @@ This script fetches YouTube data for specified search queries and streams the da
 - Fetches YouTube videos and comments based on the search queries.
 - Sends video data to AWS Kinesis for further processing.
 
----
-
-### **2. Upload Script (`upload_youtube_data.py`)**
-
-This script uploads YouTube video data from a local JSON file to AWS S3 and Kinesis.
-
-#### How to Run:
-
-1. Replace the `input_file` variable with the path to your local JSON file containing YouTube video data.
-2. Execute the script:
-
-   ```bash
-   python upload_youtube_data.py
-   ```
-
 #### Functionality:
 
 - Reads a local JSON file with YouTube video data.
@@ -77,7 +62,7 @@ This script uploads YouTube video data from a local JSON file to AWS S3 and Kine
 ```
 youtube-data-streamer/
   ├── crawler.py               # Script to fetch and stream YouTube data to Kinesis
-  ├── upload_youtube_data.py   # Script to upload YouTube data to S3 and Kinesis
+  ├── .env                     # Env file
   ├── README.md                # Project documentation
   ├── requirements.txt         # List of dependencies for the project
 ```
@@ -96,30 +81,11 @@ youtube-data-streamer/
 - Both scripts use an AWS Kinesis stream (`team5-social-media-stream` by default).
 - Ensure the stream exists and your IAM user has `kinesis:PutRecord` permissions.
 
----
-
-## **Data Flow**
-
-1. **Crawler Script:**
-
-   - Fetches data from YouTube using the YouTube Data API.
-   - Streams the data to Kinesis for processing.
-
-2. **Upload Script:**
-   - Reads YouTube data from a local file.
-   - Uploads the data to:
-     - **S3** for long-term storage.
-     - **Kinesis** for real-time processing.
-
----
-
 ## **Notes**
 
 - **Rate Limits:** The YouTube API has quota limits. Adjust the number of queries or results if necessary.
 - **Error Handling:** Both scripts include error handling for AWS and YouTube API operations.
 - **Partitioning:** Uploaded data in S3 is organized by date (e.g., `youtube/YYYY/MM/DD/HH/`).
-
----
 
 ## **Example Output**
 

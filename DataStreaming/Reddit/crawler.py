@@ -29,10 +29,10 @@ class KinesisProducer:
             return None
 
 # Reddit API credentials
-REDDIT_CLIENT_ID = "cvn2EH5C4HP5LifPPvHDvA"
-REDDIT_CLIENT_SECRET = "kC_u2qJLXOwXficJEFrYUQppiIfqjw"
-REDDIT_USER_AGENT = "script:KN1111:1.0 (by u/LessCase7928)"
-# Authenticate Reddit
+REDDIT_CLIENT_ID = os.environ.get("REDDIT_CLIENT_ID")
+REDDIT_CLIENT_SECRET = os.environ.get("REDDIT_CLIENT_SECRET")
+REDDIT_USER_AGENT = os.environ.get("REDDIT_USER_AGENT")
+
 reddit = praw.Reddit(
     client_id=REDDIT_CLIENT_ID,
     client_secret=REDDIT_CLIENT_SECRET,

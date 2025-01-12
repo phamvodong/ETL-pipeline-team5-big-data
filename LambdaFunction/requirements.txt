@@ -1,6 +1,2 @@
 boto3
-botocore
 pandas
-TextBlob
-nltk
-python-dateutil
